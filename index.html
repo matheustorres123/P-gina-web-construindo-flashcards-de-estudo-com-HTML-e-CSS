@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página Web: Flashcards de Estudo com HTML e CSS - Start by Alura</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            alura: {
+              purple: '#8257e5',
+              purpleHover: '#9466ff',
+              green: '#04d361',
+              greenDark: '#03a84e',
+              bgDark: '#121214',
+              cardDark: '#1d1d22',
+              cardBorder: '#29292e',
+              textMuted: '#a8a8b3',
+              textTitle: '#e1e1e6'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* Estilos customizados para o efeito 3D Flip Card */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    
+    .transform-style-3d {
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .backface-hidden {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    
+    .rotate-y-180 {
+      transform: rotateY(180deg);
+    }
+
+    /* Suporte a hover flip no desktop para cartões do simulador */
+    .flip-card-hover:hover .transform-style-3d {
+      transform: rotateY(180deg);
+    }
+
+    /* Scrollbar personalizada */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #121214;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #29292e;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #8257e5;
+    }
+
+    /* Brilho pulsante */
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(130, 87, 229, 0.25); }
+      50% { box-shadow: 0 0 25px rgba(130, 87, 229, 0.5); }
+    }
+    .glow-alura {
+      animation: pulseGlow 3s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-alura-bgDark text-alura-textTitle font-sans min-h-screen flex flex-col antialiased selection:bg-alura-purple selection:text-white">
+
+  <!-- Canvas para Confete -->
+  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+  <!-- Container para Toasts / Notificações -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- NAVEGAÇÃO SUPERIOR -->
+  <header class="border-b border-alura-cardBorder bg-alura-bgDark/90 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo e Título -->
+      <div class="flex items-center gap-3">
+        <div class="bg-alura-purple p-2 rounded-xl text-white font-black flex items-center justify-center shadow-lg shadow-purple-900/30">
+          <i class="fa-solid fa-layer-group text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold uppercase tracking-wider bg-alura-purple/20 text-alura-purple px-2 py-0.5 rounded border border-alura-purple/30">Start by Alura</span>
+            <span class="text-xs text-alura-textMuted hidden sm:inline">• Mônica Mazzochi Hillman</span>
+          </div>
+          <h1 class="text-sm sm:text-base font-bold text-white truncate max-w-xs sm:max-w-md">
+            Flashcards de Estudo: HTML e CSS
+          </h1>
+        </div>
+      </div>
+
+      <!-- Links de Navegação -->
+      <nav class="hidden md:flex items-center gap-6 text-xs font-medium text-alura-textMuted">
+        <a href="#aulas-section" class="hover:text-alura-purple transition-colors flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i> As 8 Aulas
+        </a>
+        <a href="#confere-ai-section" class="hover:text-alura-purple transition-colors flex items-center gap-1.5">
+          <i class="fa-solid fa-newspaper text-amber-400"></i> Projeto Confere Aí
+        </a>
+        <a href="#playground-section" class="hover:text-alura-purple transition-colors flex items-center gap-1.5">
+          <i class="fa-solid fa-code text-alura-green"></i> Playground Vivo
+        </a>
+      </nav>
+
+      <!-- Botão de Ação Rápida -->
+      <div class="flex items-center gap-2">
+        <button onclick="toggleAudioDescriptionModal()" class="bg-alura-cardDark hover:bg-alura-cardBorder text-xs text-alura-textMuted hover:text-white px-3 py-2 rounded-lg border border-alura-cardBorder transition-all flex items-center gap-1.5" title="Ver audiodescrição da instrutora">
+          <i class="fa-solid fa-universal-access text-alura-purple"></i>
+          <span class="hidden sm:inline">Audiodescrição</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-10">
+
+    <!-- HERO BANNER E PAINEL DA INSTRUTORA + PROGRESSO -->
+    <section class="relative bg-gradient-to-br from-alura-cardDark via-alura-cardDark to-purple-950/30 rounded-2xl border border-alura-cardBorder p-6 sm:p-8 shadow-2xl overflow-hidden glow-alura">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+        
+        <!-- Perfil da Instrutora Mônica Hillman -->
+        <div class="lg:col-span-7 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div class="relative group shrink-0">
+            <!-- Avatar SVG da Instrutora Mônica -->
+            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-tr from-amber-600 via-purple-600 to-alura-purple p-1 shadow-xl">
+              <div class="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center overflow-hidden relative">
+                <svg viewBox="0 0 120 120" class="w-full h-full text-white">
+                  <!-- Fundo com gradiente suave -->
+                  <rect width="120" height="120" fill="#1e1e24" />
+                  <!-- Cabelo Ruivo Longo -->
+                  <path d="M25 45 C25 20, 95 20, 95 45 C95 80, 85 95, 80 100 C75 105, 45 105, 40 100 C35 95, 25 80, 25 45 Z" fill="#d97706" />
+                  <!-- Rosto -->
+                  <ellipse cx="60" cy="55" rx="22" ry="26" fill="#fde047" opacity="0.9" />
+                  <!-- Franja -->
+                  <path d="M38 42 Q60 25 82 42 Q60 35 38 42 Z" fill="#b45309" />
+                  <!-- Óculos de grau -->
+                  <rect x="42" y="48" width="14" height="10" rx="3" fill="none" stroke="#1e293b" stroke-width="2.5" />
+                  <rect x="64" y="48" width="14" height="10" rx="3" fill="none" stroke="#1e293b" stroke-width="2.5" />
+                  <line x1="56" y1="53" x2="64" y2="53" stroke="#1e293b" stroke-width="2.5" />
+                  <!-- Camiseta Marrom -->
+                  <path d="M30 110 C30 90, 90 90, 90 110 Z" fill="#78350f" />
+                </svg>
+              </div>
+            </div>
+            <button onclick="speakAudioDescription()" class="absolute -bottom-2 -right-2 bg-alura-purple hover:bg-alura-purpleHover text-white p-2 rounded-full shadow-lg text-xs transition-transform hover:scale-110" title="Ouvir audiodescrição por voz">
+              <i class="fa-solid fa-volume-high"></i>
+            </button>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <div class="inline-flex items-center gap-2">
+              <span class="text-alura-green font-semibold text-xs uppercase tracking-wider"><i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Unidade do Curso</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
+              Página web: construindo flashcards de estudo com HTML e CSS
+            </h2>
+            <p class="text-alura-textMuted text-xs sm:text-sm leading-relaxed max-w-xl">
+              Guiado pela instrutora <strong class="text-white">Mônica Mazzochi Hillman</strong>. Aprenda a estruturar páginas semânticas, estilizar elementos, construir layouts flexíveis com Flexbox e criar o incrível efeito 3D de virar flashcards no projeto <em>Confere Aí</em>.
+            </p>
+            <div class="flex items-center gap-3 mt-1 text-xs text-alura-purple font-medium">
+              <button onclick="toggleAudioDescriptionModal()" class="hover:underline flex items-center gap-1">
+                <i class="fa-solid fa-circle-info"></i> Ler Audiodescrição da Instrutora
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Painel de Progresso Geral da Unidade -->
+        <div class="lg:col-span-5 bg-alura-bgDark/80 border border-alura-cardBorder rounded-xl p-5 shadow-xl backdrop-blur">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-alura-textMuted flex items-center gap-2">
+              <i class="fa-solid fa-chart-pie text-alura-purple"></i>
+              Progresso do Aluno
+            </h3>
+            <span id="overall-percentage" class="text-2xl font-black text-alura-green">0%</span>
+          </div>
+
+          <!-- Barra de Progresso Animada -->
+          <div class="w-full bg-alura-cardDark h-3.5 rounded-full overflow-hidden p-0.5 border border-alura-cardBorder mb-5">
+            <div id="overall-progress-bar" class="bg-gradient-to-r from-alura-purple to-alura-green h-full rounded-full transition-all duration-700 ease-out w-0"></div>
+          </div>
+
+          <!-- Métricas das Aulas -->
+          <div class="grid grid-cols-3 gap-3 text-center mb-4">
+            <div class="bg-alura-cardDark/60 p-2.5 rounded-lg border border-alura-cardBorder">
+              <span class="block text-[10px] text-alura-textMuted uppercase font-semibold">Aulas</span>
+              <span id="completed-lessons-text" class="text-sm font-bold text-white">0 / 8</span>
+            </div>
+            <div class="bg-alura-cardDark/60 p-2.5 rounded-lg border border-alura-cardBorder">
+              <span class="block text-[10px] text-alura-textMuted uppercase font-semibold">Tempo</span>
+              <span id="studied-minutes-text" class="text-sm font-bold text-alura-purple">0 / 95 min</span>
+            </div>
+            <div class="bg-alura-cardDark/60 p-2.5 rounded-lg border border-alura-cardBorder">
+              <span class="block text-[10px] text-alura-textMuted uppercase font-semibold">Status</span>
+              <span id="status-badge" class="text-xs font-bold text-amber-400">Em curso</span>
+            </div>
+          </div>
+
+          <!-- Ações Globais -->
+          <div class="flex gap-2">
+            <button onclick="completeAllLessons()" class="flex-1 bg-alura-purple hover:bg-alura-purpleHover text-white py-2 rounded-lg text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-check-double"></i> Concluir Todas
+            </button>
+            <button onclick="triggerConfetti()" class="bg-alura-green/20 hover:bg-alura-green/30 text-alura-green border border-alura-green/40 px-3 py-2 rounded-lg text-xs font-bold transition-all" title="Celebrar progresso">
+              <i class="fa-solid fa-party-horn"></i> Celebrar!
+            </button>
+            <button onclick="resetAllProgress()" class="bg-alura-cardDark hover:bg-red-950/40 text-alura-textMuted hover:text-red-400 border border-alura-cardBorder px-3 py-2 rounded-lg text-xs font-bold transition-all" title="Resetar progresso">
+              <i class="fa-solid fa-arrow-rotate-left"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- SEÇÃO 1: AS 8 AULAS DA UNIDADE -->
+    <section id="aulas-section" class="flex flex-col gap-6">
+      
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-alura-cardBorder pb-4">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-graduation-cap text-alura-purple"></i>
+            As 8 Aulas da Unidade
+          </h2>
+          <p class="text-xs text-alura-textMuted mt-0.5">
+            Clique nos cards para abrir detalhes, conceitos, snippets de código e responder ao mini-quiz de fixação.
+          </p>
+        </div>
+
+        <!-- Barra de Busca e Filtros -->
+        <div class="flex flex-col sm:flex-row items-center gap-3">
+          <div class="relative w-full sm:w-64">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-alura-textMuted"></i>
+            <input 
+              type="text" 
+              id="lesson-search-input" 
+              placeholder="Buscar aula ou tópico..." 
+              oninput="handleSearchLessons()"
+              class="w-full bg-alura-cardDark text-white placeholder-alura-textMuted text-xs rounded-lg pl-9 pr-3 py-2 border border-alura-cardBorder focus:outline-none focus:border-alura-purple transition-colors"
+            >
+          </div>
+
+          <div class="flex items-center gap-1 bg-alura-cardDark p-1 rounded-lg border border-alura-cardBorder w-full sm:w-auto justify-center">
+            <button onclick="setFilter('all')" id="btn-filter-all" class="lesson-filter-btn text-xs px-3 py-1 rounded-md font-medium text-white bg-alura-purple transition-all">Todas (8)</button>
+            <button onclick="setFilter('pending')" id="btn-filter-pending" class="lesson-filter-btn text-xs px-3 py-1 rounded-md font-medium text-alura-textMuted hover:text-white transition-all">Pendentes</button>
+            <button onclick="setFilter('completed')" id="btn-filter-completed" class="lesson-filter-btn text-xs px-3 py-1 rounded-md font-medium text-alura-textMuted hover:text-white transition-all">Concluídas</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid dos 8 Cards de Aulas -->
+      <div id="lessons-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Renderizado dinamicamente via JS -->
+      </div>
+
+      <!-- Estado Vazio -->
+      <div id="lessons-empty-state" class="hidden text-center py-12 bg-alura-cardDark/40 rounded-xl border border-dashed border-alura-cardBorder">
+        <i class="fa-solid fa-book-bookmark text-3xl text-alura-textMuted mb-2"></i>
+        <h3 class="text-sm font-bold text-white">Nenhuma aula encontrada</h3>
+        <p class="text-xs text-alura-textMuted mt-1">Tente pesquisar por termos como "flexbox", "semântico" ou "3D".</p>
+      </div>
+
+    </section>
+
+
+    <!-- SEÇÃO 2: SIMULADOR DO PROJETO "CONFERE AÍ" -->
+    <section id="confere-ai-section" class="flex flex-col gap-6 bg-alura-cardDark/40 border border-alura-cardBorder p-6 sm:p-8 rounded-2xl">
+      
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">Projeto Prático do Curso</span>
+            <span class="text-xs text-alura-textMuted">Combate à Desinformação</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mt-1 flex items-center gap-2">
+            <i class="fa-solid fa-newspaper text-amber-400"></i>
+            Plataforma "Confere Aí" - Flashcards Interativos
+          </h2>
+          <p class="text-xs text-alura-textMuted mt-1">
+            Passe o mouse (desktop) ou toque no cartão para revelar o fato verdadeiro e o efeito 3D de giro!
+          </p>
+        </div>
+
+        <button onclick="openCreateCardModal()" class="bg-alura-purple hover:bg-alura-purpleHover text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-2 shrink-0">
+          <i class="fa-solid fa-plus"></i> Criar Meu Flashcard
+        </button>
+      </div>
+
+      <!-- Grid dos Flashcards de Checagem do Confere Aí -->
+      <div id="fact-cards-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+        <!-- Renderizado dinamicamente via JS -->
+      </div>
+
+    </section>
+
+
+    <!-- SEÇÃO 3: PLAYGROUND VIVO DE CÓDIGO HTML/CSS -->
+    <section id="playground-section" class="flex flex-col gap-6 bg-alura-cardDark border border-alura-cardBorder p-6 sm:p-8 rounded-2xl shadow-xl">
+      
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-code text-alura-green"></i>
+            Playground Prático: HTML e CSS ao Vivo
+          </h2>
+          <p class="text-xs text-alura-textMuted mt-1">
+            Edite o código abaixo para praticar em tempo real e ver a renderização instantânea do flashcard.
+          </p>
+        </div>
+
+        <!-- Botões de Receitas Prontas -->
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs text-alura-textMuted font-medium mr-1">Receitas:</span>
+          <button onclick="loadPlaygroundRecipe('semantic')" class="bg-alura-bgDark hover:bg-alura-cardBorder text-alura-purple border border-alura-purple/30 text-xs px-2.5 py-1.5 rounded-lg transition-all font-medium">
+            HTML Semântico
+          </button>
+          <button onclick="loadPlaygroundRecipe('flexbox')" class="bg-alura-bgDark hover:bg-alura-cardBorder text-sky-400 border border-sky-500/30 text-xs px-2.5 py-1.5 rounded-lg transition-all font-medium">
+            Flexbox Layout
+          </button>
+          <button onclick="loadPlaygroundRecipe('flip3d')" class="bg-alura-bgDark hover:bg-alura-cardBorder text-alura-green border border-alura-green/30 text-xs px-2.5 py-1.5 rounded-lg transition-all font-medium">
+            Flip 3D
+          </button>
+        </div>
+      </div>
+
+      <!-- Editor + Preview -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        
+        <!-- Editor de Código Textarea -->
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between text-xs font-mono text-alura-textMuted bg-alura-bgDark px-3 py-2 rounded-t-lg border border-alura-cardBorder border-b-0">
+            <span class="flex items-center gap-2">
+              <i class="fa-brands fa-html5 text-amber-500"></i> Code Editor (HTML + CSS)
+            </span>
+            <button onclick="resetPlaygroundCode()" class="hover:text-white text-[11px]">
+              <i class="fa-solid fa-rotate-left mr-1"></i> Restaurar
+            </button>
+          </div>
+          <textarea 
+            id="playground-editor" 
+            class="w-full h-80 bg-alura-bgDark text-violet-200 font-mono text-xs p-4 rounded-b-lg border border-alura-cardBorder focus:outline-none focus:border-alura-purple leading-relaxed resize-none" 
+            spellcheck="false"
+            oninput="updatePlaygroundPreview()"
+          ></textarea>
+        </div>
+
+        <!-- Container do Live Preview -->
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between text-xs font-mono text-alura-textMuted bg-alura-bgDark px-3 py-2 rounded-t-lg border border-alura-cardBorder border-b-0">
+            <span class="flex items-center gap-2">
+              <i class="fa-solid fa-desktop text-alura-green"></i> Live Preview
+            </span>
+            <span class="text-[10px] text-alura-green font-bold">● Renderização em tempo real</span>
+          </div>
+          <iframe id="playground-iframe" class="w-full h-80 bg-white rounded-b-lg border border-alura-cardBorder"></iframe>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- RODAPÉ -->
+  <footer class="border-t border-alura-cardBorder bg-alura-bgDark py-8 mt-12 text-xs text-alura-textMuted">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-white">Start by Alura</span>
+        <span>•</span>
+        <span>Unidade: Página web com Flashcards em HTML e CSS</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span>Instrutora: <strong class="text-white">Mônica Mazzochi Hillman</strong></span>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- MODAL 1: DETALHES DA AULA E MINI-QUIZ -->
+  <div id="lesson-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-alura-cardDark border border-alura-cardBorder rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-alura-cardBorder flex items-center justify-between bg-alura-bgDark">
+        <div class="flex items-center gap-2.5">
+          <span id="modal-lesson-badge" class="text-[10px] font-bold px-2.5 py-1 rounded-full border bg-alura-purple/20 text-alura-purple border-alura-purple/30">
+            Aula 01
+          </span>
+          <h3 id="modal-lesson-title" class="font-bold text-white text-base truncate max-w-md">
+            Título da Aula
+          </h3>
+        </div>
+        <button onclick="closeLessonModal()" class="text-alura-textMuted hover:text-white p-1 text-lg transition-colors">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto flex-grow flex flex-col gap-6">
+        
+        <!-- Resumo -->
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-alura-purple mb-1">
+            <i class="fa-solid fa-align-left mr-1"></i> Resumo da Aula
+          </h4>
+          <p id="modal-lesson-description" class="text-xs text-slate-300 leading-relaxed">
+            Descrição detalhada...
+          </p>
+        </div>
+
+        <!-- Conceitos Aprendidos -->
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-alura-green mb-2">
+            <i class="fa-solid fa-check-double mr-1"></i> Conceitos Aprendidos
+          </h4>
+          <ul id="modal-lesson-concepts" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-alura-textMuted">
+            <!-- Injetado dinamicamente -->
+          </ul>
+        </div>
+
+        <!-- Snippet de Código -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-amber-400">
+              <i class="fa-solid fa-code mr-1"></i> Código de Exemplo
+            </h4>
+            <button onclick="copySnippetFromModal()" class="text-[11px] text-alura-purple hover:underline flex items-center gap-1">
+              <i class="fa-regular fa-copy"></i> Copiar Código
+            </button>
+          </div>
+          <pre class="bg-alura-bgDark p-3 rounded-lg border border-alura-cardBorder font-mono text-xs text-violet-300 overflow-x-auto"><code id="modal-lesson-snippet">...</code></pre>
+        </div>
+
+        <!-- Mini-Quiz Interativo de Fixação -->
+        <div class="bg-alura-bgDark/80 p-4 rounded-xl border border-alura-purple/30 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-circle-question text-alura-purple text-sm"></i>
+              Mini-Quiz de Fixação da Aula
+            </h4>
+            <span class="text-[10px] bg-alura-purple/20 text-alura-purple px-2 py-0.5 rounded font-semibold">+Progresso</span>
+          </div>
+
+          <p id="modal-quiz-question" class="text-xs text-slate-200 font-medium">
+            Pergunta do quiz?
+          </p>
+
+          <div id="modal-quiz-options" class="flex flex-col gap-2">
+            <!-- Opções do quiz -->
+          </div>
+
+          <div id="modal-quiz-feedback" class="hidden text-xs font-medium p-2.5 rounded-lg"></div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3 border-t border-alura-cardBorder bg-alura-bgDark flex items-center justify-between">
+        <button onclick="testSnippetInPlayground()" class="text-xs text-alura-purple hover:underline font-medium flex items-center gap-1.5">
+          <i class="fa-solid fa-flask"></i> Testar Snippet no Playground
+        </button>
+        <button onclick="closeLessonModal()" class="bg-alura-cardDark hover:bg-alura-cardBorder text-white px-4 py-2 rounded-lg text-xs font-semibold transition-all">
+          Fechar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- MODAL 2: AUDIODESCRIÇÃO DA INSTRUTORA -->
+  <div id="audiodescription-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-alura-cardDark border border-alura-cardBorder rounded-2xl w-full max-w-md p-6 flex flex-col gap-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-alura-cardBorder pb-3">
+        <h3 class="font-bold text-white text-sm flex items-center gap-2">
+          <i class="fa-solid fa-universal-access text-alura-purple"></i>
+          Audiodescrição da Instrutora
+        </h3>
+        <button onclick="toggleAudioDescriptionModal()" class="text-alura-textMuted hover:text-white">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="text-xs text-slate-300 leading-relaxed bg-alura-bgDark p-4 rounded-xl border border-alura-cardBorder">
+        <p class="font-semibold text-alura-purple mb-2">Descrição Visual:</p>
+        <p>"Mônica Mazzochi Hillman é uma mulher branca, com cabelos ruivos até os ombros. Ela usa óculos de grau e veste uma camiseta marrom."</p>
+      </div>
+
+      <div class="flex gap-2 justify-end">
+        <button onclick="speakAudioDescription()" class="bg-alura-purple hover:bg-alura-purpleHover text-white px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
+          <i class="fa-solid fa-volume-high"></i> Ouvir Voz
+        </button>
+        <button onclick="toggleAudioDescriptionModal()" class="bg-alura-bgDark text-white px-4 py-2 rounded-lg text-xs font-medium">
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- MODAL 3: CRIADOR DE FLASHCARD PERSONALIZADO -->
+  <div id="create-card-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-alura-cardDark border border-alura-cardBorder rounded-2xl w-full max-w-lg p-6 flex flex-col gap-5 shadow-2xl">
+      
+      <div class="flex items-center justify-between border-b border-alura-cardBorder pb-3">
+        <h3 class="font-bold text-white text-sm flex items-center gap-2">
+          <i class="fa-solid fa-plus-circle text-alura-green"></i>
+          Criar Flashcard Personalizado (Confere Aí)
+        </h3>
+        <button onclick="closeCreateCardModal()" class="text-alura-textMuted hover:text-white">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="create-card-form" onsubmit="handleCreateCardSubmit(event)" class="flex flex-col gap-4">
+        
+        <div>
+          <label class="block text-xs font-semibold text-amber-400 mb-1">
+            Frente (Mito / Notícia Falsa ou Pergunta):
+          </label>
+          <input 
+            type="text" 
+            id="card-front-input" 
+            required
+            placeholder="Ex: Pinguins voam como pássaros no céu."
+            class="w-full bg-alura-bgDark text-white text-xs rounded-lg p-2.5 border border-alura-cardBorder focus:outline-none focus:border-alura-purple"
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-alura-green mb-1">
+            Verso (Fato Verdadeiro / Resposta Correta):
+          </label>
+          <textarea 
+            id="card-back-input" 
+            required
+            rows="3"
+            placeholder="Ex: FALSO! Pinguins não voam, mas são excelentes nadadores e usam suas asas como nadadeiras."
+            class="w-full bg-alura-bgDark text-white text-xs rounded-lg p-2.5 border border-alura-cardBorder focus:outline-none focus:border-alura-purple leading-relaxed"
+          ></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-alura-textMuted mb-1">
+            Cor do Tema do Card:
+          </label>
+          <select id="card-theme-input" class="w-full bg-alura-bgDark text-white text-xs rounded-lg p-2.5 border border-alura-cardBorder focus:outline-none focus:border-alura-purple">
+            <option value="purple">Roxo Alura (#8257e5)</option>
+            <option value="green">Verde Alura (#04d361)</option>
+            <option value="amber">Âmbar Notícia (#f59e0b)</option>
+            <option value="sky">Azul Web (#38bdf8)</option>
+          </select>
+        </div>
+
+        <div class="flex gap-2 justify-end pt-2">
+          <button type="button" onclick="closeCreateCardModal()" class="bg-alura-bgDark text-alura-textMuted hover:text-white px-4 py-2 rounded-lg text-xs font-semibold">
+            Cancelar
+          </button>
+          <button type="submit" class="bg-alura-green hover:bg-alura-greenDark text-slate-950 font-bold px-5 py-2 rounded-lg text-xs transition-all shadow-lg">
+            Adicionar ao Projeto
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+
+  <!-- LÓGICA E SCRIPTS EM JAVASCRIPT -->
+  <script>
+    // 1. DADOS DAS 8 AULAS DA UNIDADE
+    const lessonsData = [
+      {
+        id: 1,
+        title: "Combatendo a desinformação",
+        duration: 10,
+        summary: "Mitos x Verdades na programação. Ideia central e planejamento do projeto 'Confere Aí' de checagem de fatos com flashcards.",
+        concepts: [
+          "Mitos sobre precisar ser gênio em matemática para programar",
+          "Técnica de estudo por repetição espaçada usando Flashcards",
+          "Conceito do projeto 'Confere Aí' de checagem de notícias falsas",
+          "Estrutura inicial de planejamento HTML/CSS"
+        ],
+        snippet: `<!-- Estrutura básica do Flashcard Confere Aí -->\n<article class="cartao">\n  <div class="cartao__conteudo">\n    <p>Pinguins voam alto como pássaros no céu?</p>\n  </div>\n</article>`,
+        quiz: {
+          question: "Qual é o principal objetivo do projeto 'Confere Aí' desenvolvido no curso?",
+          options: [
+            "Criar um jogo 3D de corrida espacial",
+            "Construir uma plataforma com flashcards para checar notícias falsas e fatos verdadeiros",
+            "Desenvolver um banco de dados relacional complexo",
+            "Criar apenas um formulário de cadastro de usuários"
+          ],
+          correctIndex: 1
+        }
+      },
+      {
+        id: 2,
+        title: "HTML: o esqueleto da web",
+        duration: 10,
+        summary: "Conceito de linguagem de marcação. Estrutura básica e tags semânticas (<main>, <article>, <header>, <footer>, <h1>-<h6>, <p>).",
+        concepts: [
+          "Diferença entre linguagem de programação e de marcação",
+          "Estrutura padrão: <!DOCTYPE html>, <html>, <head>, <body>",
+          "Semântica no HTML: <header>, <main>, <article>, <footer>",
+          "Títulos com <h1> a <h6> e parágrafos com <p>"
+        ],
+        snippet: `<!DOCTYPE html>\n<html lang="pt-BR">\n  <head><title>Confere Aí</title></head>\n  <body>\n    <main>\n      <article>Conteúdo Semântico</article>\n    </main>\n  </body>\n</html>`,
+        quiz: {
+          question: "Qual tag HTML semântica é indicada para representar o conteúdo principal da página?",
+          options: [
+            "<div>",
+            "<section>",
+            "<main>",
+            "<footer>"
+          ],
+          correctIndex: 2
+        }
+      },
+      {
+        id: 3,
+        title: "Hierarquia da informação",
+        duration: 12,
+        summary: "Organização de títulos, subtítulos, links <a>, e inserção de imagens <img> com o atributo alt para acessibilidade.",
+        concepts: [
+          "Hierarquia correta de títulos (Apenas 1 H1 por página)",
+          "Atributo href e target='_blank' na tag de link <a>",
+          "Tag <img> e o atributo alt para acessibilidade e leitores de tela",
+          "Audiodescrição e boa estruturação de texto na web"
+        ],
+        snippet: `<!-- Link com abertura em nova aba e Imagem Acessível -->\n<a href="https://alura.com.br" target="_blank">Acesse a Alura</a>\n<img src="pinguim.jpg" alt="Pinguim nadando na água fria do oceano">`,
+        quiz: {
+          question: "Para que serve fundamentalmente o atributo 'alt' em uma tag <img>?",
+          options: [
+            "Para alterar a altura da imagem em pixels",
+            "Para definir a cor da borda da imagem",
+            "Para fornecer um texto alternativo e acessível quando a imagem não carrega ou para leitores de tela",
+            "Para criar um link automático ao clicar na imagem"
+          ],
+          correctIndex: 2
+        }
+      },
+      {
+        id: 4,
+        title: "Hora de estilizar a página",
+        duration: 13,
+        summary: "Sintaxe CSS básica, seletores por tag, por classe (.card) e por ID (#topo). Propriedades color, background-color, font-family.",
+        concepts: [
+          "Estrutura do CSS: Seletor { Propriedade: Valor; }",
+          "Seletores de classe com ponto (.cartao) e ID com hashtag (#topo)",
+          "Estilização de fontes com font-family, font-size e font-weight",
+          "Cores de texto (color) e fundos (background-color)"
+        ],
+        snippet: `/* Estilizando os cartões */\n.cartao {\n  background-color: #1d1d22;\n  color: #e1e1e6;\n  font-family: 'Inter', sans-serif;\n  padding: 20px;\n}`,
+        quiz: {
+          question: "Como declaramos o seletor para uma classe chamada 'cartao' no arquivo CSS?",
+          options: [
+            "#cartao { }",
+            ".cartao { }",
+            "cartao { }",
+            "*cartao { }"
+          ],
+          correctIndex: 1
+        }
+      },
+      {
+        id: 5,
+        title: "Layout flexível",
+        duration: 8,
+        summary: "Introdução ao CSS Flexbox: display: flex, justify-content, align-items, flex-wrap e espaçamento gap.",
+        concepts: [
+          "Ativação do Flexbox no container pai com display: flex",
+          "Eixo principal com justify-content (center, space-between)",
+          "Eixo transversal com align-items (center, flex-start)",
+          "Espaçamento entre itens com a propriedade gap"
+        ],
+        snippet: `.container-cards {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  gap: 24px;\n  flex-wrap: wrap;\n}`,
+        quiz: {
+          question: "Qual propriedade CSS ativa o modelo de layout flexível em um container?",
+          options: [
+            "position: flex;",
+            "display: flex;",
+            "float: left;",
+            "flex-direction: row;"
+          ],
+          correctIndex: 1
+        }
+      },
+      {
+        id: 6,
+        title: "Cores e estilos no CSS",
+        duration: 10,
+        summary: "Sistemas de cor (Hexadecimal #8257e5, RGB, HSL), arredondamento de bordas com border-radius e efeitos de profundidade com box-shadow.",
+        concepts: [
+          "Formatos de cores Hexadecimal (#8257e5) e RGB",
+          "Arredondamento de bordas com border-radius: 16px",
+          "Criação de sombras em cartões com box-shadow",
+          "Bordas e contraste para melhor legibilidade"
+        ],
+        snippet: `.cartao {\n  border-radius: 16px;\n  border: 1px solid #29292e;\n  box-shadow: 0 10px 25px rgba(130, 87, 229, 0.2);\n}`,
+        quiz: {
+          question: "Qual propriedade CSS é responsável por criar cantos arredondados nos cartões?",
+          options: [
+            "border-style",
+            "box-shadow",
+            "border-radius",
+            "corner-shape"
+          ],
+          correctIndex: 2
+        }
+      },
+      {
+        id: 7,
+        title: "Posicionando o CSS",
+        duration: 8,
+        summary: "Propriedades position (relative, absolute, fixed), controle de sobreposição com z-index e o modelo de caixas (Box Model).",
+        concepts: [
+          "Position relative no elemento pai para servir de ancoragem",
+          "Position absolute no filho com top, right, bottom, left",
+          "Box Model: conteúdo, padding, border e margin",
+          "Organização de camadas com a propriedade z-index"
+        ],
+        snippet: `.cartao {\n  position: relative;\n}\n\n.cartao__categoria {\n  position: absolute;\n  top: 12px;\n  right: 12px;\n}`,
+        quiz: {
+          question: "Para posicionar um elemento com 'position: absolute' relativo ao seu container, o elemento pai deve ter preferencialmente qual posição?",
+          options: [
+            "position: static;",
+            "position: relative;",
+            "position: inline;",
+            "position: initial;"
+          ],
+          correctIndex: 1
+        }
+      },
+      {
+        id: 8,
+        title: "Virando o flashcard",
+        duration: 14,
+        summary: "Efeito 3D Flip Card com CSS transform: rotateY(180deg), perspective, transition, transform-style: preserve-3d e backface-visibility.",
+        concepts: [
+          "Dando profundidade 3D com perspective: 1000px no container",
+          "Preservando o ambiente 3D com transform-style: preserve-3d",
+          "Girando o verso com transform: rotateY(180deg)",
+          "Escondendo a face oposta com backface-visibility: hidden"
+        ],
+        snippet: `.cartao-inner {\n  transition: transform 0.6s;\n  transform-style: preserve-3d;\n}\n.cartao:hover .cartao-inner {\n  transform: rotateY(180deg);\n}\n.cartao-verso {\n  transform: rotateY(180deg);\n  backface-visibility: hidden;\n}`,
+        quiz: {
+          question: "Qual propriedade CSS é essencial para esconder a parte traseira de uma face durante o giro 3D?",
+          options: [
+            "display: none;",
+            "backface-visibility: hidden;",
+            "opacity: 0;",
+            "visibility: collapse;"
+          ],
+          correctIndex: 1
+        }
+      }
+    ];
+
+    // 2. DADOS DOS CARDS DE FACT-CHECKING (PROJETO CONFERE AÍ)
+    let factCards = [
+      {
+        id: 'f1',
+        front: "Pinguins voam alto como pássaros no céu.",
+        back: "FALSO! Pinguins não voam no ar, mas são excelentes nadadores e usam suas asas como nadadeiras debaixo d'água.",
+        theme: "amber",
+        isCustom: false
+      },
+      {
+        id: 'f2',
+        front: "HTML é uma linguagem de programação complexa.",
+        back: "FALSO! HTML é uma linguagem de MARCAÇÃO (HyperText Markup Language) usada para estruturar e dar significado ao conteúdo da web.",
+        theme: "purple",
+        isCustom: false
+      },
+      {
+        id: 'f3',
+        front: "CSS serve apenas para alterar a cor dos textos.",
+        back: "FALSO! O CSS controla layouts complexos (Flexbox/Grid), responsividade, cores, sombras e animações 3D incríveis como o flip deste card!",
+        theme: "green",
+        isCustom: false
+      }
+    ];
+
+    // 3. ESTADO DA APLICAÇÃO
+    let completedLessons = {};
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let currentActiveLessonModal = null;
+
+    // 4. SINTETIZADOR DE ÁUDIO WEB AUDIO API
+    const SoundEffects = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      },
+      playFlip() {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(250, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(500, this.ctx.currentTime + 0.08);
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.08);
+        } catch(e){}
+      },
+      playSuccess() {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now); // C5
+          osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+          osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(now + 0.4);
+        } catch(e){}
+      },
+      playError() {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(200, now);
+          osc.frequency.linearRampToValueAtTime(120, now + 0.2);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(now + 0.2);
+        } catch(e){}
+      }
+    };
+
+    // 5. VOZ / AUDIODESCRIÇÃO
+    function speakAudioDescription() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const text = "Mônica Mazzochi Hillman é uma mulher branca, com cabelos ruivos até os ombros. Ela usa óculos de grau e veste uma camiseta marrom.";
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'pt-BR';
+        utterance.rate = 1.0;
+        window.speechSynthesis.speak(utterance);
+        showToast("Tocando audiodescrição em voz!", "purple");
+      } else {
+        toggleAudioDescriptionModal();
+      }
+    }
+
+    // 6. INICIALIZAÇÃO
+    window.addEventListener('DOMContentLoaded', () => {
+      loadLocalStorage();
+      renderLessons();
+      renderFactCards();
+      updateOverallProgress();
+      initDefaultPlayground();
+    });
+
+    function loadLocalStorage() {
+      const saved = localStorage.getItem('alura_flashcards_unit_progress');
+      if (saved) {
+        try { completedLessons = JSON.parse(saved); } catch(e){}
+      }
+      const savedCustomCards = localStorage.getItem('alura_custom_fact_cards');
+      if (savedCustomCards) {
+        try {
+          const customCards = JSON.parse(savedCustomCards);
+          factCards = [...factCards, ...customCards];
+        } catch(e){}
+      }
+    }
+
+    function saveLocalStorage() {
+      localStorage.setItem('alura_flashcards_unit_progress', JSON.stringify(completedLessons));
+    }
+
+    // 7. RENDERIZAÇÃO DAS 8 AULAS
+    function renderLessons() {
+      const grid = document.getElementById('lessons-grid');
+      const emptyState = document.getElementById('lessons-empty-state');
+      grid.innerHTML = '';
+
+      const filtered = lessonsData.filter(lesson => {
+        const isCompleted = !!completedLessons[lesson.id];
+        let matchesFilter = true;
+        if (currentFilter === 'pending') matchesFilter = !isCompleted;
+        if (currentFilter === 'completed') matchesFilter = isCompleted;
+
+        let matchesSearch = true;
+        if (searchQuery.trim() !== '') {
+          const q = searchQuery.toLowerCase();
+          matchesSearch = lesson.title.toLowerCase().includes(q) || lesson.summary.toLowerCase().includes(q);
+        }
+
+        return matchesFilter && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        grid.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      grid.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+
+      filtered.forEach(lesson => {
+        const isCompleted = !!completedLessons[lesson.id];
+        const card = document.createElement('div');
+        card.className = `bg-alura-cardDark rounded-xl border ${isCompleted ? 'border-alura-green/50' : 'border-alura-cardBorder'} p-5 flex flex-col justify-between hover:border-alura-purple/60 transition-all duration-300 shadow-lg group`;
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${isCompleted ? 'bg-alura-green/10 text-alura-green border-alura-green/30' : 'bg-alura-purple/10 text-alura-purple border-alura-purple/30'}">
+                Aula 0${lesson.id}
+              </span>
+              <button 
+                onclick="toggleLessonComplete(${lesson.id})" 
+                class="p-1.5 rounded-lg transition-all ${isCompleted ? 'text-alura-green bg-alura-green/10' : 'text-alura-textMuted hover:text-white bg-alura-bgDark'}"
+                title="${isCompleted ? 'Marcar como pendente' : 'Marcar como concluída'}"
+              >
+                <i class="fa-solid ${isCompleted ? 'fa-circle-check text-base' : 'fa-circle text-xs'}"></i>
+              </button>
+            </div>
+
+            <h3 class="text-sm font-bold text-white group-hover:text-alura-purple transition-colors mb-2 leading-snug">
+              ${lesson.title}
+            </h3>
+
+            <p class="text-xs text-alura-textMuted leading-relaxed line-clamp-3 mb-4">
+              ${lesson.summary}
+            </p>
+          </div>
+
+          <div class="pt-3 border-t border-alura-cardBorder/60 flex items-center justify-between text-xs text-alura-textMuted">
+            <span class="flex items-center gap-1 text-[11px]">
+              <i class="fa-regular fa-clock text-alura-purple"></i> ${lesson.duration} min
+            </span>
+
+            <button 
+              onclick="openLessonModal(${lesson.id})" 
+              class="bg-alura-purple/10 hover:bg-alura-purple text-alura-purple hover:text-white border border-alura-purple/30 px-2.5 py-1 rounded-md font-semibold text-[11px] transition-all"
+            >
+              Ver Aula & Quiz
+            </button>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    // 8. RENDERIZAÇÃO DO PROJETO "CONFERE AÍ" (FACT-CHECKING)
+    function renderFactCards() {
+      const grid = document.getElementById('fact-cards-grid');
+      grid.innerHTML = '';
+
+      factCards.forEach(cardData => {
+        const themeMap = {
+          purple: { border: 'border-alura-purple/40', bgTag: 'bg-alura-purple/20 text-alura-purple', icon: 'fa-cube text-alura-purple' },
+          green: { border: 'border-alura-green/40', bgTag: 'bg-alura-green/20 text-alura-green', icon: 'fa-code text-alura-green' },
+          amber: { border: 'border-amber-500/40', bgTag: 'bg-amber-500/20 text-amber-400', icon: 'fa-triangle-exclamation text-amber-400' },
+          sky: { border: 'border-sky-500/40', bgTag: 'bg-sky-500/20 text-sky-400', icon: 'fa-globe text-sky-400' }
+        };
+
+        const theme = themeMap[cardData.theme] || themeMap.purple;
+
+        const cardContainer = document.createElement('div');
+        cardContainer.className = 'perspective-1000 h-[260px] w-full cursor-pointer flip-card-hover';
+        cardContainer.onclick = () => {
+          SoundEffects.playFlip();
+          const inner = cardContainer.querySelector('.transform-style-3d');
+          if (inner) inner.classList.toggle('rotate-y-180');
+        };
+
+        cardContainer.innerHTML = `
+          <div class="transform-style-3d relative w-full h-full rounded-2xl border ${theme.border} bg-alura-cardDark shadow-xl">
+            
+            <!-- FRENTE DO FLASHCARD (MITO / NOTÍCIA FALSA) -->
+            <div class="backface-hidden absolute inset-0 rounded-2xl p-6 flex flex-col justify-between bg-gradient-to-b from-alura-cardDark to-alura-bgDark border border-alura-cardBorder">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${theme.bgTag}">
+                  <i class="fa-solid fa-bug mr-1"></i> Notícia / Mito
+                </span>
+                ${cardData.isCustom ? `<button onclick="event.stopPropagation(); deleteCustomCard('${cardData.id}')" class="text-alura-textMuted hover:text-red-400 p-1 text-xs" title="Excluir card"><i class="fa-solid fa-trash"></i></button>` : ''}
+              </div>
+
+              <div class="my-auto text-center px-2">
+                <i class="fa-solid fa-circle-xmark text-amber-500 text-2xl mb-2"></i>
+                <p class="text-sm font-semibold text-white leading-relaxed">
+                  "${cardData.front}"
+                </p>
+              </div>
+
+              <div class="text-center text-[10px] text-alura-textMuted font-medium border-t border-alura-cardBorder pt-2">
+                <i class="fa-solid fa-hand-pointer mr-1 text-alura-purple"></i> Passe o mouse ou toque para checar a verdade
+              </div>
+            </div>
+
+            <!-- VERSO DO FLASHCARD (FATO VERDADEIRO) -->
+            <div class="backface-hidden rotate-y-180 absolute inset-0 rounded-2xl p-6 flex flex-col justify-between bg-alura-cardDark border border-alura-green/40 bg-gradient-to-b from-alura-cardDark to-emerald-950/20">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-alura-green/20 text-alura-green border border-alura-green/30">
+                  <i class="fa-solid fa-circle-check mr-1"></i> Fato Verdadeiro
+                </span>
+                <span class="text-[10px] text-alura-textMuted">Confere Aí ✓</span>
+              </div>
+
+              <div class="my-auto text-center px-2">
+                <i class="fa-solid fa-shield-halved text-alura-green text-2xl mb-2"></i>
+                <p class="text-xs font-medium text-slate-200 leading-relaxed">
+                  ${cardData.back}
+                </p>
+              </div>
+
+              <div class="text-center text-[10px] text-alura-green font-semibold border-t border-alura-cardBorder pt-2">
+                Checado com Sucesso!
+              </div>
+            </div>
+
+          </div>
+        `;
+
+        grid.appendChild(cardContainer);
+      });
+    }
+
+    // 9. CRIAR CARD PERSONALIZADO NO CONFERE AÍ
+    function openCreateCardModal() {
+      document.getElementById('create-card-modal').classList.remove('hidden');
+    }
+
+    function closeCreateCardModal() {
+      document.getElementById('create-card-modal').classList.add('hidden');
+    }
+
+    function handleCreateCardSubmit(e) {
+      e.preventDefault();
+      const front = document.getElementById('card-front-input').value.trim();
+      const back = document.getElementById('card-back-input').value.trim();
+      const theme = document.getElementById('card-theme-input').value;
+
+      if (!front || !back) return;
+
+      const newCard = {
+        id: 'custom_' + Date.now(),
+        front,
+        back,
+        theme,
+        isCustom: true
+      };
+
+      factCards.push(newCard);
+      
+      // Salvar apenas os customizados no localStorage
+      const customOnly = factCards.filter(c => c.isCustom);
+      localStorage.setItem('alura_custom_fact_cards', JSON.stringify(customOnly));
+
+      renderFactCards();
+      closeCreateCardModal();
+      showToast("Flashcard adicionado com sucesso!", "green");
+      SoundEffects.playSuccess();
+
+      document.getElementById('create-card-form').reset();
+    }
+
+    function deleteCustomCard(id) {
+      factCards = factCards.filter(c => c.id !== id);
+      const customOnly = factCards.filter(c => c.isCustom);
+      localStorage.setItem('alura_custom_fact_cards', JSON.stringify(customOnly));
+      renderFactCards();
+      showToast("Flashcard removido.", "purple");
+    }
+
+    // 10. ATUALIZAR PROGRESSO GERAL
+    function updateOverallProgress() {
+      const completedCount = Object.keys(completedLessons).filter(id => completedLessons[id]).length;
+      const total = lessonsData.length;
+      const percentage = Math.round((completedCount / total) * 100);
+
+      // Calcular minutos estudados
+      let studiedMinutes = 0;
+      lessonsData.forEach(l => {
+        if (completedLessons[l.id]) studiedMinutes += l.duration;
+      });
+
+      document.getElementById('completed-lessons-text').innerText = `${completedCount} / ${total}`;
+      document.getElementById('studied-minutes-text').innerText = `${studiedMinutes} / 95 min`;
+      document.getElementById('overall-percentage').innerText = `${percentage}%`;
+      document.getElementById('overall-progress-bar').style.width = `${percentage}%`;
+
+      const statusBadge = document.getElementById('status-badge');
+      if (percentage === 100) {
+        statusBadge.innerText = 'Concluído!';
+        statusBadge.className = 'text-xs font-bold text-alura-green animate-pulse';
+      } else {
+        statusBadge.innerText = 'Em curso';
+        statusBadge.className = 'text-xs font-bold text-amber-400';
+      }
+    }
+
+    function toggleLessonComplete(id) {
+      completedLessons[id] = !completedLessons[id];
+      if (completedLessons[id]) {
+        SoundEffects.playSuccess();
+      }
+      saveLocalStorage();
+      renderLessons();
+      updateOverallProgress();
+    }
+
+    function completeAllLessons() {
+      lessonsData.forEach(l => completedLessons[l.id] = true);
+      saveLocalStorage();
+      renderLessons();
+      updateOverallProgress();
+      triggerConfetti();
+      SoundEffects.playSuccess();
+      showToast("Parabéns! Todas as 8 aulas foram concluídas!", "green");
+    }
+
+    function resetAllProgress() {
+      completedLessons = {};
+      saveLocalStorage();
+      renderLessons();
+      updateOverallProgress();
+      showToast("Progresso resetado.", "purple");
+    }
+
+    // 11. BUSCA E FILTROS DE AULAS
+    function handleSearchLessons() {
+      searchQuery = document.getElementById('lesson-search-input').value;
+      renderLessons();
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.lesson-filter-btn').forEach(btn => {
+        btn.classList.remove('bg-alura-purple', 'text-white');
+        btn.classList.add('text-alura-textMuted');
+      });
+
+      const btnActive = document.getElementById(`btn-filter-${filter}`);
+      if (btnActive) {
+        btnActive.classList.remove('text-alura-textMuted');
+        btnActive.classList.add('bg-alura-purple', 'text-white');
+      }
+
+      renderLessons();
+    }
+
+    // 12. MODAL DA AULA E QUIZ
+    function openLessonModal(id) {
+      const lesson = lessonsData.find(l => l.id === id);
+      if (!lesson) return;
+
+      currentActiveLessonModal = lesson;
+
+      document.getElementById('modal-lesson-badge').innerText = `Aula 0${lesson.id}`;
+      document.getElementById('modal-lesson-title').innerText = lesson.title;
+      document.getElementById('modal-lesson-description').innerText = lesson.summary;
+
+      // Renderizar conceitos
+      const conceptsList = document.getElementById('modal-lesson-concepts');
+      conceptsList.innerHTML = '';
+      lesson.concepts.forEach(c => {
+        const li = document.createElement('li');
+        li.className = 'flex items-start gap-1.5';
+        li.innerHTML = `<span class="text-alura-green font-bold">✓</span> <span>${c}</span>`;
+        conceptsList.appendChild(li);
+      });
+
+      document.getElementById('modal-lesson-snippet').innerText = lesson.snippet;
+
+      // Renderizar quiz
+      document.getElementById('modal-quiz-question').innerText = lesson.quiz.question;
+      const optionsContainer = document.getElementById('modal-quiz-options');
+      optionsContainer.innerHTML = '';
+
+      const feedbackEl = document.getElementById('modal-quiz-feedback');
+      feedbackEl.classList.add('hidden');
+
+      lesson.quiz.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'w-full text-left text-xs bg-alura-cardDark hover:bg-alura-cardBorder p-2.5 rounded-lg border border-alura-cardBorder transition-all text-slate-200';
+        btn.innerText = opt;
+        btn.onclick = () => checkQuizAnswer(idx, lesson.quiz.correctIndex, lesson.id);
+        optionsContainer.appendChild(btn);
+      });
+
+      document.getElementById('lesson-modal').classList.remove('hidden');
+    }
+
+    function closeLessonModal() {
+      document.getElementById('lesson-modal').classList.add('hidden');
+    }
+
+    function checkQuizAnswer(selectedIndex, correctIndex, lessonId) {
+      const feedbackEl = document.getElementById('modal-quiz-feedback');
+      feedbackEl.classList.remove('hidden', 'bg-emerald-950/60', 'text-emerald-300', 'border-emerald-500/40', 'bg-red-950/60', 'text-red-300', 'border-red-500/40');
+
+      if (selectedIndex === correctIndex) {
+        feedbackEl.classList.add('bg-emerald-950/60', 'text-emerald-300', 'border', 'border-emerald-500/40');
+        feedbackEl.innerHTML = '<i class="fa-solid fa-circle-check mr-1.5"></i> Resposta Correta! Aula marcada como concluída com sucesso!';
+        SoundEffects.playSuccess();
+
+        // Marcar aula como concluída automaticamente
+        completedLessons[lessonId] = true;
+        saveLocalStorage();
+        renderLessons();
+        updateOverallProgress();
+      } else {
+        feedbackEl.classList.add('bg-red-950/60', 'text-red-300', 'border', 'border-red-500/40');
+        feedbackEl.innerHTML = '<i class="fa-solid fa-circle-xmark mr-1.5"></i> Ops, resposta incorreta. Tente novamente!';
+        SoundEffects.playError();
+      }
+    }
+
+    function copySnippetFromModal() {
+      if (currentActiveLessonModal) {
+        const temp = document.createElement('textarea');
+        temp.value = currentActiveLessonModal.snippet;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        showToast("Código copiado para a área de transferência!", "purple");
+      }
+    }
+
+    function testSnippetInPlayground() {
+      if (currentActiveLessonModal) {
+        const htmlCode = `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { background: #121214; color: #e1e1e6; font-family: sans-serif; padding: 20px; }
+    .cartao { background: #1d1d22; border: 1px solid #8257e5; border-radius: 12px; padding: 16px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h3>Exemplo Prático da Aula:</h3>
+  ${currentActiveLessonModal.snippet}
+</body>
+</html>`;
+        document.getElementById('playground-editor').value = htmlCode;
+        updatePlaygroundPreview();
+        closeLessonModal();
+        document.getElementById('playground-section').scrollIntoView({ behavior: 'smooth' });
+        showToast("Código carregado no Playground Vivo!", "green");
+      }
+    }
+
+    // 13. PLAYGROUND AO VIVO
+    const playgroundRecipes = {
+      semantic: `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <style>
+    body { background: #121214; color: #e1e1e6; font-family: system-ui, sans-serif; padding: 20px; margin: 0; }
+    header { border-bottom: 2px solid #8257e5; padding-bottom: 10px; margin-bottom: 20px; }
+    h1 { color: #8257e5; font-size: 20px; margin: 0; }
+    main { background: #1d1d22; p-4; border-radius: 12px; padding: 15px; }
+    article { font-size: 14px; line-height: 1.5; color: #a8a8b3; }
+    footer { margin-top: 20px; font-size: 11px; color: #04d361; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Confere Aí - Checagem Semântica</h1>
+  </header>
+  <main>
+    <article>
+      <h2>Notícia em Análise</h2>
+      <p>Estruturar uma página com tags semânticas (<main>, <article>) ajuda na acessibilidade e SEO!</p>
+    </article>
+  </main>
+  <footer>Alura Start • Estrutura Semântica</footer>
+</body>
+</html>`,
+
+      flexbox: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { background: #121214; font-family: sans-serif; padding: 20px; margin: 0; }
+    .container {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .card {
+      background: #1d1d22;
+      border: 1px solid #8257e5;
+      border-radius: 10px;
+      padding: 15px;
+      color: white;
+      text-align: center;
+      flex: 1;
+      min-width: 120px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">Card Flex 1</div>
+    <div class="card">Card Flex 2</div>
+    <div class="card">Card Flex 3</div>
+  </div>
+</body>
+</html>`,
+
+      flip3d: `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { background: #121214; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    
+    .scene { width: 220px; height: 180px; perspective: 1000px; }
+    .card {
+      width: 100%; height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+      cursor: pointer;
+    }
+    .scene:hover .card { transform: rotateY(180deg); }
+    .face {
+      position: absolute; width: 100%; height: 100%;
+      backface-visibility: hidden;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 15px; box-sizing: border-box; font-size: 13px;
+    }
+    .front { background: #1d1d22; color: #f59e0b; border: 1px solid #f59e0b; }
+    .back { background: #1d1d22; color: #04d361; border: 1px solid #04d361; transform: rotateY(180deg); }
+  </style>
+</head>
+<body>
+  <div class="scene">
+    <div class="card">
+      <div class="face front">Passe o mouse aqui! (Mito)</div>
+      <div class="face back">FALSO! Pinguins não voam no céu! (Verdade)</div>
+    </div>
+  </div>
+</body>
+</html>`
+    };
+
+    function initDefaultPlayground() {
+      loadPlaygroundRecipe('flip3d');
+    }
+
+    function loadPlaygroundRecipe(recipeKey) {
+      if (playgroundRecipes[recipeKey]) {
+        document.getElementById('playground-editor').value = playgroundRecipes[recipeKey];
+        updatePlaygroundPreview();
+      }
+    }
+
+    function resetPlaygroundCode() {
+      initDefaultPlayground();
+    }
+
+    function updatePlaygroundPreview() {
+      const code = document.getElementById('playground-editor').value;
+      const iframe = document.getElementById('playground-iframe');
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      doc.open();
+      doc.write(code);
+      doc.close();
+    }
+
+    // 14. MODAL AUDIODESCRIÇÃO
+    function toggleAudioDescriptionModal() {
+      const modal = document.getElementById('audiodescription-modal');
+      modal.classList.toggle('hidden');
+    }
+
+    // 15. TOAST NOTIFICATIONS
+    function showToast(message, type = "purple") {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const bgClass = type === 'green' ? 'bg-alura-green text-slate-950 font-bold' : 'bg-alura-purple text-white font-medium';
+
+      toast.className = `${bgClass} text-xs px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-5 duration-300 pointer-events-auto`;
+      toast.innerHTML = `<i class="fa-solid fa-circle-info"></i> <span>${message}</span>`;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'transition-opacity');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // 16. ANIMAÇÃO DE CONFETES
+    function triggerConfetti() {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const particles = [];
+      const colors = ['#8257e5', '#9466ff', '#04d361', '#f59e0b', '#38bdf8'];
+
+      for (let i = 0; i < 120; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          vy: Math.random() * 3 + 2,
+          vx: (Math.random() - 0.5) * 2,
+          rotation: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 10
+        });
+      }
+
+      let animationFrame;
+      let startTime = Date.now();
+
+      function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          p.y += p.vy;
+          p.x += p.vx;
+          p.rotation += p.vRot;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.restore();
+        });
+
+        if (Date.now() - startTime < 4000) {
+          animationFrame = requestAnimationFrame(render);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+
+      render();
+    }
+
+    window.addEventListener('resize', () => {
+      const canvas = document.getElementById('confetti-canvas');
+      if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+    });
+  </script>
+</body>
+</html>
